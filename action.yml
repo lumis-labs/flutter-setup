@@ -1,0 +1,35 @@
+name: Flutter Setup
+description: A Flutter environment for use with GitHub Actions
+author: "Lumis Labs <https://github.com/lumis-labs>"
+
+branding:
+  color: blue
+  icon: feather
+
+inputs:
+  flutter_channel:
+    description: "The Flutter channel to use"
+    required: false
+    default: stable
+  flutter_version:
+    description: "The Flutter version to use"
+    required: false
+    default: 3.24.1
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Dart
+      uses: dart-lang/setup-dart@v1
+      with:
+        cache: true
+
+    - name: Run Flutter setup script (Linux/macOS)
+      if: runner.os == 'Linux' || runner.os == 'macOS'
+      run: dart ${{ github.action_path }}/setup.dart --channel ${{ inputs.flutter_channel }} --version ${{ inputs.flutter_version }}
+      shell: bash
+
+    - name: Run Flutter setup script (Windows)
+      if: runner.os == 'Windows'
+      run: dart ${{ github.action_path }}/setup.dart --channel ${{ inputs.flutter_channel }} --version ${{ inputs.flutter_version }}
+      shell: cmd
