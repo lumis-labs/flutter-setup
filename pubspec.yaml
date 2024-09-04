@@ -1,0 +1,15 @@
+name: flutter_setup
+description: A Flutter environment for use with GitHub Actions
+version: 0.1.0
+repository: https://github.com/lumis-labs/flutter-setup
+
+environment:
+  sdk: ^3.5.1
+
+# Add regular dependencies here.
+dependencies:
+  http: ^1.2.2
+
+dev_dependencies:
+  lints: ^4.0.0
+  test: ^1.24.0

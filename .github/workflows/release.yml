@@ -1,0 +1,63 @@
+name: Release
+
+permissions:
+  contents: write
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+
+        arch:
+          - x64
+          - arm64
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Dart environment
+        uses: dart-lang/setup-dart@v1
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Create output directory
+        run: mkdir -p build
+
+      - name: Build project
+        run: dart compile exe bin/main.dart -o build/flutter-setup-${{ matrix.os }}-${{ matrix.arch }}
+
+      - name: Archive build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-setup-${{ matrix.os }}-${{ matrix.arch }}
+          path: build
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: build
+
+      - name: Make a release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/**
+          tag_name: v1.0.0

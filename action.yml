@@ -7,29 +7,46 @@ branding:
   icon: feather
 
 inputs:
-  flutter_channel:
-    description: "The Flutter channel to use"
+  channel:
+    description: "The Flutter channel to use (e.g. stable, beta, dev)"
     required: false
-    default: stable
-  flutter_version:
-    description: "The Flutter version to use"
+  version:
+    description: "The Flutter version to use (e.g. 3.24.1)"
     required: false
-    default: 3.24.1
+  os:
+    description: "The operating system to use (e.g. windows, linux, macos)"
+    required: false
+    default: linux
+  architecture:
+    description: "The architecture to use (e.g. arm64, x64)"
+    required: false
+    default: x64
 
 runs:
   using: composite
   steps:
-    - name: Set up Dart
-      uses: dart-lang/setup-dart@v1
-      with:
-        cache: true
+    - name: Download flutter URI tool
+      run: |
+        URI="https://github.com/lumis-labs/flutter-setup/releases/download/v1.0.0/flutter-setup-${OS}-${ARCHITECTURE}"
+        curl -fL $URI -o ${{ github.action_path }}/flutter_setup
+        chmod +x ${{ github.action_path }}/flutter_setup
+        ${{ github.action_path }}/flutter_setup
+      shell: bash
+      env:
+        OS: ${{ inputs.os }}
+        ARCHITECTURE: ${{ inputs.architecture }}
 
-    - name: Run Flutter setup script (Linux/macOS)
-      if: runner.os == 'Linux' || runner.os == 'macOS'
-      run: dart ${{ github.action_path }}/setup.dart --channel ${{ inputs.flutter_channel }} --version ${{ inputs.flutter_version }}
+    - name: Run flutter URI tool
+      run: |
+        flutter_setup \
+           ${{ inputs.os }} \
+           ${{ inputs.architecture }} \
+           ${{ inputs.channel }} \
+           ${{ inputs.version }}
       shell: bash
 
-    - name: Run Flutter setup script (Windows)
-      if: runner.os == 'Windows'
-      run: dart ${{ github.action_path }}/setup.dart --channel ${{ inputs.flutter_channel }} --version ${{ inputs.flutter_version }}
-      shell: cmd
+    - name: Set up Flutter environment
+      run: |
+        echo "FLUTTER_ROOT=$PWD/flutter" >> $GITHUB_ENV
+        echo "PATH=$PWD/flutter/bin:$PATH" >> $GITHUB_ENV
+      shell: bash
