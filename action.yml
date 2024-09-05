@@ -30,7 +30,6 @@ runs:
         URI="https://github.com/lumis-labs/flutter-setup/releases/download/v1.0.0/flutter-setup-$OS-$ARCHITECTURE"
         curl -fL $URI -o ${{ github.action_path }}/flutter_setup
         chmod +x ${{ github.action_path }}/flutter_setup
-        ${{ github.action_path }}/flutter_setup
       shell: bash
       env:
         OS: ${{ inputs.os }}
@@ -38,15 +37,22 @@ runs:
 
     - name: Run flutter URI tool
       run: |
-        flutter_setup \
+        FLUTTER_URI=$(${{ github.action_path }}/flutter_setup \
            ${{ inputs.os }} \
            ${{ inputs.architecture }} \
            ${{ inputs.channel }} \
-           ${{ inputs.version }}
+           ${{ inputs.version }})
+        echo "FLUTTER_URI=$FLUTTER_URI" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Download Flutter SDK
+      run: |
+        curl -fL $FLUTTER_URI -o flutter.tar.xz
+        tar -xJf flutter.tar.xz
       shell: bash
 
     - name: Set up Flutter environment
       run: |
-        echo "FLUTTER_ROOT=$PWD/flutter" >> $GITHUB_ENV
-        echo "PATH=$PWD/flutter/bin:$PATH" >> $GITHUB_ENV
+        echo "FLUTTER_ROOT=flutter" >> $GITHUB_ENV
+        echo "PATH=flutter/bin:$PATH" >> $GITHUB_ENV
       shell: bash
