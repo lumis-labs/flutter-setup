@@ -28,31 +28,46 @@ runs:
     - name: Download flutter URI tool
       run: |
         URI="https://github.com/lumis-labs/flutter-setup/releases/download/v1.0.0/flutter-setup-$OS-$ARCHITECTURE"
-        curl -fL $URI -o ${{ github.action_path }}/flutter_setup
-        chmod +x ${{ github.action_path }}/flutter_setup
+        curl -fL $URI -o $GITHUB_ACTION_PATH/flutter_setup
+        chmod +x $GITHUB_ACTION_PATH/flutter_setup
       shell: bash
       env:
         OS: ${{ inputs.os }}
         ARCHITECTURE: ${{ inputs.architecture }}
+        GITHUB_ACTION_PATH: ${{ github.action_path }}
 
     - name: Run flutter URI tool
       run: |
-        FLUTTER_URI=$(${{ github.action_path }}/flutter_setup \
+        FLUTTER_URI=$($GITHUB_ACTION_PATH/flutter_setup \
            ${{ inputs.os }} \
            ${{ inputs.architecture }} \
            ${{ inputs.channel }} \
            ${{ inputs.version }})
         echo "FLUTTER_URI=$FLUTTER_URI" >> $GITHUB_ENV
       shell: bash
+      env:
+        GITHUB_ACTION_PATH: ${{ github.action_path }}
 
     - name: Download Flutter SDK
+      if: startsWith(matrix.os, 'ubuntu')
       run: |
-        curl -fL $FLUTTER_URI -o flutter.tar.xz
-        tar -xJf flutter.tar.xz
+        curl -fL $FLUTTER_URI -o $GITHUB_ACTION_PATH/flutter.tar.xz
+        tar -xJf $GITHUB_ACTION_PATH/flutter.tar.xz
       shell: bash
+      env:
+        GITHUB_ACTION_PATH: ${{ github.action_path }}
 
-    - name: Set up Flutter environment
+    - name: Download Flutter SDK
+      if: startsWith(matrix.os, 'windows') || startsWith(matrix.os, 'macos')
       run: |
-        echo "FLUTTER_ROOT=flutter" >> $GITHUB_ENV
-        echo "PATH=flutter/bin:$PATH" >> $GITHUB_ENV
+        curl -fL $FLUTTER_URI -o $GITHUB_ACTION_PATH/flutter.zip
+        unzip $GITHUB_ACTION_PATH/flutter.zip
+      shell: bash
+      env:
+        GITHUB_ACTION_PATH: ${{ github.action_path }}
+
+    - name: Add Flutter to PATH
+      run: |
+        echo "FLUTTER_ROOT=$GITHUB_ACTION_PATH/flutter" >> $GITHUB_ENV
+        echo "PATH=$GITHUB_ACTION_PATH/flutter/bin:$PATH" >> $GITHUB_ENV
       shell: bash
