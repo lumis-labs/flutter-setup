@@ -1,59 +1,32 @@
-import * as core from "@actions/core";
-import * as github from "@actions/github";
+import { Version, Os, Architecture, Channel, Environment } from "./models";
+import { PayloadService } from "./services";
 
-const environment = {
-  os: core.getInput("os"),
-  architecture: core.getInput("architecture"),
-  channel: core.getInput("channel"),
-  version: core.getInput("version"),
+// Example usage:
+// node ./dist/index.js --os="macos" --architecture="arm64" --channel="stable" --version="latest"
+
+const environment: Environment = {
+  os: Os.parse(
+    process.argv
+      .find((arg) => arg.startsWith("--os"))
+      ?.substring("--os=".length)!
+  ),
+  architecture: Architecture.parse(
+    process.argv
+      .find((arg) => arg.startsWith("--architecture"))
+      ?.substring("--architecture=".length)!
+  ),
+  channel: Channel.parse(
+    process.argv
+      .find((arg) => arg.startsWith("--channel"))
+      ?.substring("--channel=".length)!
+  ),
+  version: Version.parse(
+    process.argv
+      .find((arg) => arg.startsWith("--version"))
+      ?.substring("--version=".length)!
+  ),
 };
 
-const baseUrl = "https://storage.googleapis.com";
-let payloadUrl: string;
-
-if (environment.os.startsWith("windows")) {
-  payloadUrl = "/flutter_infra_release/releases/releases_linux.json";
-} else if (environment.os.startsWith("ubuntu")) {
-  payloadUrl = "/flutter_infra_release/releases/releases_linux.json";
-} else if (environment.os.startsWith("macos")) {
-  payloadUrl = "/flutter_infra_release/releases/releases_linux.json";
-} else {
-  throw Error("Unsupported OS: " + environment.os);
-}
-
-interface CurrentRelease {
-  beta: string;
-  dev: string;
-  stable: string;
-}
-
-interface Release {
-  hash: string;
-  channel: string;
-  version: string;
-  dart_sdk_version: string;
-  dart_sdk_arch: string;
-  release_date: string;
-  archive: string;
-  sha256: string;
-}
-
-interface Payload {
-  base_url: string;
-  current_release: CurrentRelease;
-  releases: Release[];
-}
-
-fetch(baseUrl + payloadUrl)
-  .then((response) => response.json() as Promise<Payload>)
-  .then((json) => {
-    console.log(json);
-    json.releases
-      .filter((release) => release.channel === environment.os)
-      .filter((release) => release.dart_sdk_arch === environment.architecture)
-      .filter((release) => release.channel === environment.channel)
-      .filter((release) => release.version === environment.version)
-      .forEach((release) => {
-        console.log(release.archive);
-      });
-  });
+PayloadService.getPayload(environment).then((url) => {
+  console.log(url);
+});

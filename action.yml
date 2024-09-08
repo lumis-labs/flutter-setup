@@ -11,11 +11,78 @@ inputs:
     required: true
   channel:
     description: The flutter channel to use (e.g. stable, beta, dev)
-    required: true
+    default: stable
+    required: false
   version:
     description: The flutter version to use (e.g. 3.24.1 or latest)
-    required: true
+    default: latest
+    required: false
 
 runs:
-  using: node20
-  main: dist/index.js
+  using: composite
+  steps:
+    - name: Install node
+      uses: actions/setup-node@v4
+      with:
+        node-version: "20.x"
+
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        cd ${GITHUB_ACTION_PATH}
+        npm install
+      shell: bash
+
+    - name: Build action
+      run: |
+        cd ${GITHUB_ACTION_PATH}
+        npm run build
+      shell: bash
+
+    - name: Get Flutter Archive Url
+      run: |
+        echo "FLUTTER_ARCHIVE_URL=$(node ${GITHUB_ACTION_PATH}/dist/index.js \
+          --os="${{ inputs.os }}" \
+          --architecture="${{ inputs.architecture }}" \
+          --channel="${{ inputs.channel }}" \
+          --version="${{ inputs.version }}")" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Create Flutter Directory
+      run: mkdir -p $HOME/sdk
+      shell: bash
+
+    - name: Download Flutter Archive
+      if: startsWith(inputs.os, 'ubuntu')
+      run: |
+        curl -fL ${FLUTTER_ARCHIVE_URL} -o $HOME/sdk/flutter.tar.xz
+        tar -xvf $HOME/sdk/flutter.tar.xz -C $HOME/sdk
+      shell: bash
+
+    - name: Download Flutter Archive
+      if: startsWith(inputs.os, 'windows') || startsWith(inputs.os, 'macos')
+      run: |
+        curl -fL ${FLUTTER_ARCHIVE_URL} -o $HOME/sdk/flutter.zip
+        unzip -q $HOME/sdk/flutter.zip -d $HOME/sdk
+      shell: bash
+
+    - name: Chmod flutter
+      if: startsWith(inputs.os, 'ubuntu') || startsWith(inputs.os, 'macos')
+      run: |
+        chmod +x $HOME/sdk/flutter/bin/**
+      shell: bash
+
+    - name: Set flutter path
+      if: startsWith(inputs.os, 'ubuntu') || startsWith(inputs.os, 'macos')
+      run: |
+        echo "FLUTTER_PATH=$HOME/sdk/flutter" >> $GITHUB_ENV
+        echo "PATH=$HOME/sdk/flutter/bin:$PATH" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Set flutter path
+      if: startsWith(inputs.os, 'windows')
+      run: |
+        echo "$HOME\sdk\flutter\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      shell: powershell
