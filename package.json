@@ -1,0 +1,26 @@
+{
+  "name": "flutter-setup",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "ncc build src/index.ts -o dist"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/exec": "^1.1.1",
+    "@actions/tool-cache": "^2.0.1",
+    "semver": "^7.6.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.4",
+    "@types/semver": "^7.5.8",
+    "@vercel/ncc": "^0.38.2",
+    "typescript": "^5.6.2"
+  }
+}

@@ -1,0 +1,26 @@
+name: Flutter Setup
+description: Setup a flutter environment
+
+inputs:
+  os:
+    description: "The Operating System"
+    required: true
+  architecture:
+    description: "The Architecture"
+    required: true
+  channel:
+    description: "Flutter channel"
+    required: true
+    default: "stable"
+  version:
+    description: "Flutter version"
+    required: true
+    default: "latest"
+  cache:
+    description: "Use cached artifacts"
+    required: false
+    default: "false"
+
+runs:
+  using: node20
+  main: dist/index.js
