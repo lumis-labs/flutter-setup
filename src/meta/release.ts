@@ -6,7 +6,6 @@ interface Release {
   channel: Channel;
   version: semver.SemVer;
   architecture: Architecture;
-  releaseDate: Date;
   archive: string;
 }
 
@@ -17,7 +16,6 @@ namespace Release {
       channel: Channel.parse(json["channel"]),
       version: Version.parse(json["version"]),
       architecture: Architecture.parse(json["dart_sdk_arch"] ?? "x64"),
-      releaseDate: new Date(json["release_date"]),
       archive: json["archive"],
     };
   }
