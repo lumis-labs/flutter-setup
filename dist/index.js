@@ -28100,29 +28100,6 @@ module.exports = {
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -28133,35 +28110,42 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const core = __importStar(__nccwpck_require__(7484));
-const semver_1 = __nccwpck_require__(2088);
 const meta_1 = __nccwpck_require__(8733);
-const os = meta_1.Os.parse(core.getInput("os"));
-const channel = meta_1.Channel.parse(core.getInput("channel"));
-const architecture = meta_1.Architecture.parse(core.getInput("architecture"));
-const version = meta_1.Version.parse(core.getInput("version"));
-function findFlutterFromJson(os, architecture, channel, version) {
+const util_1 = __nccwpck_require__(7416);
+function getSelectedRelease(os, architecture, channel, version) {
     return __awaiter(this, void 0, void 0, function* () {
-        const baseUrl = `https://storage.googleapis.com/flutter_infra_release/releases`;
-        const response = yield fetch(`${baseUrl}/releases_${os}.json`);
-        const json = yield (yield response.json())["releases"];
-        const release = yield json
-            .map((json) => meta_1.Release.parse(json))
+        if (!version || version.compare("0.0.0") === 0) {
+            const data = yield (0, meta_1.getFlutterMetadata)(os);
+            const release = data
+                .filter((release) => release.architecture === architecture)
+                .filter((release) => release.channel === channel)
+                .sort((a, b) => b.version.compare(a.version));
+            if (release.length === 1)
+                return release[0];
+            if (release.length > 0)
+                return release[0];
+            else
+                throw new util_1.ReleaseNotFoundError(os, architecture, channel);
+        }
+        const data = yield (0, meta_1.getFlutterMetadata)(os);
+        const release = data
             .filter((release) => release.architecture === architecture)
             .filter((release) => release.channel === channel)
-            .filter((release) => release.version === version)
-            .sort((a, b) => (0, semver_1.rcompare)(a.version, b.version));
-        console.log(release);
-        return release[0];
+            .filter((release) => release.version.compare(version) === 0)
+            .sort((a, b) => b.version.compare(a.version));
+        if (release.length === 1)
+            return release[0];
+        if (release.length > 0)
+            return release[0];
+        else
+            throw new util_1.ReleaseNotFoundError(os, architecture, channel, version);
     });
-}
-function downloadFlutter(os, channel, version) {
-    return __awaiter(this, void 0, void 0, function* () { });
 }
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
-        const release = yield findFlutterFromJson(os, architecture, channel, version);
-        core.info(`${release.version}`);
+        const { os, architecture, channel, version } = meta_1.Input;
+        const release = yield getSelectedRelease(os, architecture, channel);
+        console.log(release);
     });
 }
 run();
@@ -28217,31 +28201,88 @@ var Channel;
 /***/ }),
 
 /***/ 8733:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Version = exports.Release = exports.Os = exports.Channel = exports.Architecture = void 0;
-var architecture_1 = __nccwpck_require__(8066);
-Object.defineProperty(exports, "Architecture", ({ enumerable: true, get: function () { return architecture_1.Architecture; } }));
-var channel_1 = __nccwpck_require__(3634);
-Object.defineProperty(exports, "Channel", ({ enumerable: true, get: function () { return channel_1.Channel; } }));
-var os_1 = __nccwpck_require__(1619);
-Object.defineProperty(exports, "Os", ({ enumerable: true, get: function () { return os_1.Os; } }));
-var release_1 = __nccwpck_require__(7396);
-Object.defineProperty(exports, "Release", ({ enumerable: true, get: function () { return release_1.Release; } }));
-var version_1 = __nccwpck_require__(7005);
-Object.defineProperty(exports, "Version", ({ enumerable: true, get: function () { return version_1.Version; } }));
+exports.Input = exports.Version = exports.Release = exports.Os = exports.Channel = exports.Architecture = void 0;
+exports.getFlutterMetadata = getFlutterMetadata;
+const core = __importStar(__nccwpck_require__(7484));
+const architecture_1 = __nccwpck_require__(8066);
+const channel_1 = __nccwpck_require__(3634);
+const os_1 = __nccwpck_require__(1619);
+const release_1 = __nccwpck_require__(7396);
+const version_1 = __nccwpck_require__(7005);
+var architecture_2 = __nccwpck_require__(8066);
+Object.defineProperty(exports, "Architecture", ({ enumerable: true, get: function () { return architecture_2.Architecture; } }));
+var channel_2 = __nccwpck_require__(3634);
+Object.defineProperty(exports, "Channel", ({ enumerable: true, get: function () { return channel_2.Channel; } }));
+var os_2 = __nccwpck_require__(1619);
+Object.defineProperty(exports, "Os", ({ enumerable: true, get: function () { return os_2.Os; } }));
+var release_2 = __nccwpck_require__(7396);
+Object.defineProperty(exports, "Release", ({ enumerable: true, get: function () { return release_2.Release; } }));
+var version_2 = __nccwpck_require__(7005);
+Object.defineProperty(exports, "Version", ({ enumerable: true, get: function () { return version_2.Version; } }));
+var Input;
+(function (Input) {
+    Input.os = os_1.Os.parse(core.getInput("os"));
+    Input.channel = channel_1.Channel.parse(core.getInput("channel"));
+    Input.architecture = architecture_1.Architecture.parse(core.getInput("architecture"));
+    Input.version = version_1.Version.parse(core.getInput("version"));
+})(Input || (exports.Input = Input = {}));
+function getFlutterMetadata(os) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const baseUrl = "https://storage.googleapis.com/flutter_infra_release";
+        const response = yield fetch(`${baseUrl}/releases/releases_${os}.json`);
+        if (!response.ok)
+            throw new Error(response.statusText);
+        const json = yield response.json();
+        return json["releases"].map(release_1.Release.parse);
+    });
+}
 
 
 /***/ }),
 
 /***/ 1619:
-/***/ ((__unused_webpack_module, exports) => {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Os = void 0;
+const os_not_supported_error_1 = __nccwpck_require__(6584);
 var Os;
 (function (Os) {
     Os["Linux"] = "linux";
@@ -28254,7 +28295,7 @@ var Os;
         if (os === "ubuntu")
             os = "linux";
         if (!Object.values(Os).includes(os))
-            throw new Error(`Unsupported Os: ${os}`);
+            throw new os_not_supported_error_1.OsNotSupportedError(os);
         return os;
     }
     Os.parse = parse;
@@ -28279,7 +28320,6 @@ var Release;
             channel: _1.Channel.parse(json["channel"]),
             version: _1.Version.parse(json["version"]),
             architecture: _1.Architecture.parse((_a = json["dart_sdk_arch"]) !== null && _a !== void 0 ? _a : "x64"),
-            releaseDate: new Date(json["release_date"]),
             archive: json["archive"],
         };
     }
@@ -28324,16 +28364,67 @@ var Version;
     function parse(version) {
         if (version === "latest")
             return semver.parse("0.0.0");
-        return fixed(version);
-    }
-    Version.parse = parse;
-    function fixed(version) {
         const result = semver.parse(version);
         if (!result)
             throw new Error(`Invalid version: ${version}`);
         return result;
     }
+    Version.parse = parse;
 })(Version || (exports.Version = Version = {}));
+
+
+/***/ }),
+
+/***/ 7416:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ReleaseNotFoundError = void 0;
+var release_not_found_error_1 = __nccwpck_require__(3907);
+Object.defineProperty(exports, "ReleaseNotFoundError", ({ enumerable: true, get: function () { return release_not_found_error_1.ReleaseNotFoundError; } }));
+
+
+/***/ }),
+
+/***/ 6584:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.OsNotSupportedError = void 0;
+class OsNotSupportedError extends Error {
+    constructor(os) {
+        super(`Unsupported Os: '${os}'`);
+    }
+}
+exports.OsNotSupportedError = OsNotSupportedError;
+
+
+/***/ }),
+
+/***/ 3907:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ReleaseNotFoundError = void 0;
+class ReleaseNotFoundError extends Error {
+    constructor(os, architecture, channel, version) {
+        let message = `No release found for configuration:\n`;
+        message += `- os: ${os}\n`;
+        message += `- architecture: ${architecture}\n`;
+        message += `- channel: ${channel}\n`;
+        if (version)
+            message += `- version: ${version}\n`;
+        super(message);
+        this.os = os;
+        this.architecture = architecture;
+        this.channel = channel;
+        this.version = version;
+    }
+}
+exports.ReleaseNotFoundError = ReleaseNotFoundError;
 
 
 /***/ }),

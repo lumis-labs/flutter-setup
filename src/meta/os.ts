@@ -1,3 +1,5 @@
+import { OsNotSupportedError } from "@/util/os-not-supported-error";
+
 enum Os {
   Linux = "linux",
   MacOS = "macos",
@@ -9,7 +11,7 @@ namespace Os {
     os = os.split("-")[0];
     if (os === "ubuntu") os = "linux";
     if (!Object.values(Os).includes(os as Os))
-      throw new Error(`Unsupported Os: ${os}`);
+      throw new OsNotSupportedError(os);
     return os as Os;
   }
 }

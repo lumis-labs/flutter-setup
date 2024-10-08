@@ -21,8 +21,6 @@ jobs:
         with:
           os: ${{ matrix.os }}
           architecture: ${{ matrix.architecture }}
-          channel: stable
-          version: 3.24.1
           cache: true
       - run: flutter --version
       - run: dart --version
