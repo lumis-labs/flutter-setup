@@ -9,15 +9,20 @@ jobs:
   build:
     strategy:
       matrix:
+        # os:
+        # - macos-latest
+        # - windows-latest
+        # - ubuntu-latest
+        # architecture:
+        # - x64
+        # include:
+        # - os: macos-latest
+        #   architecture: arm64
+
         os:
-          - macos-latest
-          - windows-latest
           - ubuntu-latest
         architecture:
           - x64
-        include:
-          - os: macos-latest
-            architecture: arm64
 
     runs-on: ${{ matrix.os }}
     steps:
